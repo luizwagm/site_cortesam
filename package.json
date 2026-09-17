@@ -1,6 +1,6 @@
 {
   "name": "corte-sam",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Corte Sam — corte de tecidos e modelos para confecções em Caruaru-PE. Site, blog, agendamento e painel.",
   "main": "server.js",

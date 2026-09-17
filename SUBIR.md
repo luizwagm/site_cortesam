@@ -57,6 +57,24 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now cortesam cortesam-backup.timer
 ```
 
+A unidade cria `data/`, `assets/img/uploads/` e `backups/` sozinha, em dois
+`ExecStartPre=+` (fora do sandbox, como root), porque com
+`ProtectSystem=strict` o processo **não consegue** criá-las: o `/var/www` é
+só-leitura dentro do namespace e um `ReadWritePaths` com `-` é ignorado quando
+a pasta falta. Até a 0.1.1 isso deixava o serviço reiniciando em laço com
+`ENOENT … mkdir '…/data'`. Se o serviço já estiver instalado de uma versão
+anterior, recopie a unidade e recarregue:
+
+```bash
+sudo cp operacao/cortesam.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl restart cortesam
+```
+
+Conferir que subiu:
+
+```bash
+curl -s http://127.0.0.1:5208/saude
+```
+
 ## 2b. O reinício sem senha (uma vez por servidor)
 
 ```bash

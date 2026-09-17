@@ -3,6 +3,23 @@
 Versionamento: a 1ª casa não muda; a 2ª sobe com funcionalidade nova; a 3ª
 sobe com correção.
 
+## 0.1.2 — 17/09/2026
+
+- **Correção na unidade do systemd (achada na primeira subida real).** Numa
+  instalação nova o serviço reiniciava em laço com
+  `ENOENT: no such file or directory, mkdir '…/Corte-Sam/data'`: `data/` não
+  vem no git, o `/var/www` é só-leitura dentro do namespace
+  (`ProtectSystem=strict`) e um `ReadWritePaths` com `-` é **ignorado**
+  quando a pasta não existe — então nem o próprio servidor conseguia criá-la.
+  Quem criava as pastas era o `criar-site.sh`, que roda DEPOIS.
+  Agora a unidade cria `data/`, `assets/img/uploads/` e `backups/` em dois
+  `ExecStartPre=+` (fora do sandbox, como root) e devolve a posse ao usuário
+  `deploy`. `backups/` entrou também no `ReadWritePaths`.
+- 6 provas novas sobre a unidade (pastas de escrita, posse, ReadWritePaths,
+  ausência de `MemoryDenyWriteExecute`, `StartLimitIntervalSec` no `[Unit]`
+  e as mesmas pastas no `deploy.sh`) — 169 no total. Sabotagem conferida:
+  tirar o `ExecStartPre` derruba a prova.
+
 ## 0.1.1 — 17/09/2026
 
 - Rodapé: a base (direitos e CNPJ, privacidade e crédito das fotos, assinatura

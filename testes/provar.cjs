@@ -254,6 +254,26 @@ function proximoDia(semana, aPartir = 1) {   // 0 = domingo … 6 = sábado
     .filter((f) => fs.readFileSync(path.join(RAIZ, f), "utf8").includes(String.fromCharCode(13)));
   certo("código e scripts com fim de linha LF (sem CRLF)", comCr.length === 0, comCr.join(", "));
 
+  console.log("\n— a unidade do systemd");
+  /* Instalação nova: `data/` não vem no git, o /var/www é só-leitura dentro do
+     namespace (ProtectSystem=strict) e um ReadWritePaths com `-` é IGNORADO
+     quando a pasta falta — o servidor morria em laço, com ENOENT no mkdir e
+     mensagem que fala de arquivo ausente, não de permissão. Quem cria as
+     pastas é o ExecStartPre com `+` (fora do sandbox, como root). */
+  const unidade = fs.readFileSync(path.join(RAIZ, "operacao", "cortesam.service"), "utf8");
+  const PASTAS = ["data", "assets/img/uploads", "backups"];
+  const antesDeSubir = unidade.split("\n").filter((l) => l.startsWith("ExecStartPre="));
+  certo("a unidade cria as pastas de escrita antes do namespace (ExecStartPre com +)",
+    antesDeSubir.length >= 2 && antesDeSubir.every((l) => l.startsWith("ExecStartPre=+")) && /\bmkdir -p\b/.test(antesDeSubir[0]) && PASTAS.every((d) => antesDeSubir[0].includes("/Corte-Sam/" + d)), antesDeSubir.join(" | "));
+  certo("…e devolve a posse ao usuário do serviço", antesDeSubir.some((l) => /chown deploy:deploy/.test(l) && PASTAS.every((d) => l.includes("/Corte-Sam/" + d))));
+  certo("toda pasta de escrita está em ReadWritePaths", PASTAS.every((d) => unidade.includes("ReadWritePaths=-/var/www/projetos/Corte-Sam/" + d)));
+  /* O comentário CITA a trava (é a lição do Kenósis); o que não pode existir é
+     a diretiva de verdade — por isso a busca ignora as linhas de comentário. */
+  const diretivas = unidade.split("\n").filter((l) => l.trim() && !l.trim().startsWith("#"));
+  certo("a unidade NÃO tem MemoryDenyWriteExecute (mata o V8 com 5/TRAP)", !diretivas.some((l) => /^MemoryDenyWriteExecute/.test(l.trim())));
+  certo("StartLimitIntervalSec no [Unit], não no [Service] (no lugar errado o systemd ignora)", /\[Unit\][\s\S]*StartLimitIntervalSec=0[\s\S]*\[Service\]/.test(unidade));
+  certo("o deploy.sh também cria as três pastas", PASTAS.every((d) => fs.readFileSync(path.join(RAIZ, "deploy.sh"), "utf8").includes(`"$RAIZ/${d}"`)));
+
   console.log("\n— agendamento pelo site");
   const segunda = proximoDia(1, 2);
   const sabado = proximoDia(6, 1);

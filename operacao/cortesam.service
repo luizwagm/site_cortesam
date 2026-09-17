@@ -24,6 +24,19 @@ Environment=HOST=127.0.0.1
 # e aí o site fica FORA do índice, que é o lado seguro do erro.
 EnvironmentFile=-/var/www/projetos/Corte-Sam/.env
 
+# AS PASTAS DE ESCRITA NASCEM AQUI, e não no servidor Node.
+#
+# Com ProtectSystem=strict o /var/www fica só-leitura DENTRO do namespace, e um
+# ReadWritePaths com `-` é simplesmente IGNORADO quando a pasta não existe. Numa
+# instalação nova (clone recém-feito, `data/` fora do git) o `mkdirSync` do
+# src/db.js falhava com ENOENT e o systemd reiniciava em laço a cada 3 s —
+# mensagem que fala de "no such file or directory" e não de permissão.
+#
+# O `+` roda o comando FORA do sandbox e como root, antes do namespace existir;
+# o chown devolve a posse ao usuário do serviço.
+ExecStartPre=+/bin/mkdir -p /var/www/projetos/Corte-Sam/data /var/www/projetos/Corte-Sam/assets/img/uploads /var/www/projetos/Corte-Sam/backups
+ExecStartPre=+/bin/chown deploy:deploy /var/www/projetos/Corte-Sam/data /var/www/projetos/Corte-Sam/assets/img/uploads /var/www/projetos/Corte-Sam/backups
+
 ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=3
@@ -34,7 +47,7 @@ RestartSec=3
 # arquivo não apareceria: a gravação falha em silêncio dentro do namespace.
 #
 # O `-` na frente evita o 226/NAMESPACE quando a pasta falta (mensagem que não
-# diz qual pasta); quem garante que ela EXISTE é o deploy.sh e o .gitkeep.
+# diz qual pasta); quem garante que ela EXISTE é o ExecStartPre acima.
 #
 # NÃO há MemoryDenyWriteExecute: mata o V8 com 5/TRAP segundos depois de subir.
 NoNewPrivileges=true
@@ -46,6 +59,7 @@ ProtectControlGroups=true
 RestrictSUIDSGID=true
 ReadWritePaths=-/var/www/projetos/Corte-Sam/data
 ReadWritePaths=-/var/www/projetos/Corte-Sam/assets/img/uploads
+ReadWritePaths=-/var/www/projetos/Corte-Sam/backups
 
 SyslogIdentifier=cortesam
 

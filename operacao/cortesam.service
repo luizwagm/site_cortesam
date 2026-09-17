@@ -1,0 +1,53 @@
+[Unit]
+Description=Corte Sam — site, agendamento, blog e painel
+Documentation=file:///var/www/projetos/Corte-Sam/README.md
+After=network-online.target
+Wants=network-online.target
+
+# StartLimitIntervalSec pertence ao [Unit]. No [Service] o systemd escreve
+# "Unknown key name … ignoring" e SEGUE — a proteção simplesmente não existe.
+# Zero = não desiste nunca: serviço que "desistiu" às 4h só é notado às 8h —
+# a hora em que a oficina abre e as confecções começam a agendar.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/projetos/Corte-Sam
+Environment=NODE_ENV=production
+Environment=PORT=5208
+Environment=HOST=127.0.0.1
+
+# Endereço público e SMTP vivem FORA do repositório,
+# no .env (ver .env.exemplo). O `-` faz o serviço subir mesmo sem o arquivo —
+# e aí o site fica FORA do índice, que é o lado seguro do erro.
+EnvironmentFile=-/var/www/projetos/Corte-Sam/.env
+
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+
+# CONTENÇÃO. O processo escreve em DOIS lugares: data/ (SQLite em WAL: a
+# permissão tem de ser da PASTA, que ele cria e apaga -wal/-shm) e a pasta de
+# envio de fotos do painel. Sem a segunda linha, o painel diria "enviado" e o
+# arquivo não apareceria: a gravação falha em silêncio dentro do namespace.
+#
+# O `-` na frente evita o 226/NAMESPACE quando a pasta falta (mensagem que não
+# diz qual pasta); quem garante que ela EXISTE é o deploy.sh e o .gitkeep.
+#
+# NÃO há MemoryDenyWriteExecute: mata o V8 com 5/TRAP segundos depois de subir.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=-/var/www/projetos/Corte-Sam/data
+ReadWritePaths=-/var/www/projetos/Corte-Sam/assets/img/uploads
+
+SyslogIdentifier=cortesam
+
+[Install]
+WantedBy=multi-user.target

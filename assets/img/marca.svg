@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Corte Sam">
+  <!-- Três ondas = as folhas do enfesto (a onda do logotipo antigo, multiplicada).
+       A lâmina amarela = a faca da máquina de corte. Depois dela, as folhas
+       sobem: o deslocamento é o corte. -->
+  <defs>
+    <clipPath id="cs-e"><rect x="0" y="0" width="32.1" height="64"/></clipPath>
+    <clipPath id="cs-d"><rect x="32.1" y="0" width="32" height="64"/></clipPath>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#0A1A3F"/>
+  <g fill="none" stroke-width="4.6" stroke-linecap="round" clip-path="url(#cs-e)">
+    <path d="M9 24c7.5-6 15.5-6 24 0s16.5 6 24 0" stroke="#FFFFFF"/>
+    <path d="M9 34c7.5-6 15.5-6 24 0s16.5 6 24 0" stroke="#6FB3FF"/>
+    <path d="M9 44c7.5-6 15.5-6 24 0s16.5 6 24 0" stroke="#3B7BFF"/>
+  </g>
+  <g fill="none" stroke-width="4.6" stroke-linecap="round" clip-path="url(#cs-d)">
+    <path d="M9 18c7.5-6 15.5-6 24 0s16.5 6 24 0" stroke="#FFFFFF"/>
+    <path d="M9 28c7.5-6 15.5-6 24 0s16.5 6 24 0" stroke="#6FB3FF"/>
+    <path d="M9 38c7.5-6 15.5-6 24 0s16.5 6 24 0" stroke="#3B7BFF"/>
+  </g>
+  <rect x="30.8" y="7" width="2.6" height="50" rx="1.3" fill="#FFD23F"/>
+</svg>

@@ -1,0 +1,10 @@
+# dados do cliente: banco, sessões, segredo, freio de senha — nunca no git
+/data/
+/backups/
+# fotos enviadas pelo painel moram no servidor (entram no backup, não no git)
+/assets/img/uploads/
+node_modules/
+.env
+*.log
+# configuração local do editor/pré-visualização
+/.claude/
